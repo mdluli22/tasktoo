@@ -3,12 +3,90 @@
  */
 package tasktoo;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+
 public class App {
-    public String getGreeting() {
-        return "Hello World!";
-    }
 
     public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+        try {
+            // Load the XML file from resources
+            InputStream inputStream = App.class.getResourceAsStream("/data.xml");
+
+            // Create an XMLStreamReader
+            XMLInputFactory factory = XMLInputFactory.newInstance();
+            XMLStreamReader reader = factory.createXMLStreamReader(inputStream);
+
+            // List to store records
+            List<Record> records = new ArrayList<>();
+
+            // Parse the XML file
+            Record record = null;
+            String elementName = null;
+            while (reader.hasNext()) {
+                int event = reader.next();
+                switch (event) {
+                    case XMLStreamConstants.START_ELEMENT:
+                        elementName = reader.getLocalName();
+                        if ("record".equals(elementName)) {
+                            record = new Record();
+                        }
+                        break;
+                    case XMLStreamConstants.CHARACTERS:
+                        String text = reader.getText().trim();
+                        if (text.length() > 0) {
+                            switch (elementName) {
+                                case "name":
+                                    record.setName(text);
+                                    break;
+                                case "postalZip":
+                                    record.setPostalZip(text);
+                                    break;
+                                case "region":
+                                    record.setRegion(text);
+                                    break;
+                                case "country":
+                                    record.setCountry(text);
+                                    break;
+                                case "address":
+                                    record.setAddress(text);
+                                    break;
+                                case "list":
+                                    record.setList(text);
+                                    break;
+                            }
+                        }
+                        break;
+                    case XMLStreamConstants.END_ELEMENT:
+                        elementName = reader.getLocalName();
+                        if ("record".equals(elementName)) {
+                            records.add(record);
+                        }
+                        break;
+                }
+            }
+
+            // Close the XMLStreamReader
+            reader.close();
+
+            // Print the records
+            for (Record r : records) {
+                System.out.println("Record:");
+                System.out.println("Name: " + r.getName());
+                System.out.println("Postal/Zip: " + r.getPostalZip());
+                System.out.println("Region: " + r.getRegion());
+                System.out.println("Country: " + r.getCountry());
+                System.out.println("Address: " + r.getAddress());
+                System.out.println("List: " + r.getList());
+                System.out.println();
+            }
+        } catch (XMLStreamException e) {
+            e.printStackTrace();
+        }
     }
 }
